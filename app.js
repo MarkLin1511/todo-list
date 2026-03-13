@@ -1,4 +1,11 @@
-const STORAGE_KEY = "habit-garden-data";
+const HABIT_STORAGE_KEY = "habit-garden-data";
+const TODO_STORAGE_KEY = "momentum-list-items";
+const TAB_STORAGE_KEY = "momentum-desk-active-tab";
+
+const tabButtons = document.querySelectorAll(".tab-button");
+const tabPanels = document.querySelectorAll(".tab-panel");
+const habitStat = document.querySelector("#habit-stat");
+const taskStat = document.querySelector("#task-stat");
 
 const habitForm = document.querySelector("#habit-form");
 const habitNameInput = document.querySelector("#habit-name");
@@ -7,96 +14,286 @@ const habitList = document.querySelector("#habit-list");
 const todayDate = document.querySelector("#today-date");
 const todaySummary = document.querySelector("#today-summary");
 const resetTodayButton = document.querySelector("#reset-today");
-const emptyStateTemplate = document.querySelector("#empty-state-template");
+const habitEmptyTemplate = document.querySelector("#habit-empty-template");
 
+const todoForm = document.querySelector("#todo-form");
+const todoInput = document.querySelector("#todo-input");
+const todoCategorySelect = document.querySelector("#todo-category");
+const todoList = document.querySelector("#todo-list");
+const filterButtons = document.querySelectorAll(".filter-button");
+const openCount = document.querySelector("#open-count");
+const doneCount = document.querySelector("#done-count");
+const clearCompletedButton = document.querySelector("#clear-completed");
+const todoEmptyTemplate = document.querySelector("#todo-empty-template");
+
+let activeTab = loadActiveTab();
+let currentFilter = "all";
 let habits = loadHabits();
+let todos = loadTodos();
 
+bindEvents();
 render();
+setActiveTab(activeTab);
 
-habitForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+function bindEvents() {
+  habitForm.addEventListener("submit", (event) => {
+    event.preventDefault();
 
-  const name = habitNameInput.value.trim();
-  if (!name) {
-    return;
-  }
-
-  habits.unshift({
-    id: crypto.randomUUID(),
-    name,
-    color: habitColorInput.value,
-    completions: [],
-    totalCompletions: 0,
-  });
-
-  persistAndRender();
-  habitForm.reset();
-  habitColorInput.value = "sun";
-  habitNameInput.focus();
-});
-
-habitList.addEventListener("click", (event) => {
-  const target = event.target;
-  const card = target.closest(".habit-card");
-
-  if (!card) {
-    return;
-  }
-
-  const habit = habits.find(({ id }) => id === card.dataset.id);
-  if (!habit) {
-    return;
-  }
-
-  const today = getTodayKey();
-
-  if (target.matches("[data-action='toggle']")) {
-    const completedToday = habit.completions.includes(today);
-
-    if (completedToday) {
-      habit.completions = habit.completions.filter((entry) => entry !== today);
-      habit.totalCompletions = Math.max(0, habit.totalCompletions - 1);
-    } else {
-      habit.completions.push(today);
-      habit.completions.sort();
-      habit.totalCompletions += 1;
+    const name = habitNameInput.value.trim();
+    if (!name) {
+      return;
     }
 
-    persistAndRender();
-  }
+    habits.unshift({
+      id: crypto.randomUUID(),
+      name,
+      color: habitColorInput.value,
+      completions: [],
+      totalCompletions: 0,
+    });
 
-  if (target.matches("[data-action='delete']")) {
-    habits = habits.filter(({ id }) => id !== habit.id);
-    persistAndRender();
-  }
-});
-
-resetTodayButton.addEventListener("click", () => {
-  const today = getTodayKey();
-
-  habits = habits.map((habit) => {
-    if (!habit.completions.includes(today)) {
-      return habit;
-    }
-
-    return {
-      ...habit,
-      completions: habit.completions.filter((entry) => entry !== today),
-      totalCompletions: Math.max(0, habit.totalCompletions - 1),
-    };
+    persistHabits();
+    habitForm.reset();
+    habitColorInput.value = "sun";
+    habitNameInput.focus();
   });
 
-  persistAndRender();
-});
+  habitList.addEventListener("click", (event) => {
+    const target = event.target;
+    const card = target.closest(".habit-card");
 
-function persistAndRender() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
+    if (!card) {
+      return;
+    }
+
+    const habit = habits.find(({ id }) => id === card.dataset.id);
+    if (!habit) {
+      return;
+    }
+
+    const today = getTodayKey();
+
+    if (target.matches("[data-action='toggle']")) {
+      if (habit.completions.includes(today)) {
+        habit.completions = habit.completions.filter((entry) => entry !== today);
+        habit.totalCompletions = Math.max(0, habit.totalCompletions - 1);
+      } else {
+        habit.completions.push(today);
+        habit.completions.sort();
+        habit.totalCompletions += 1;
+      }
+
+      persistHabits();
+    }
+
+    if (target.matches("[data-action='delete']")) {
+      habits = habits.filter(({ id }) => id !== habit.id);
+      persistHabits();
+    }
+  });
+
+  resetTodayButton.addEventListener("click", () => {
+    const today = getTodayKey();
+
+    habits = habits.map((habit) => {
+      if (!habit.completions.includes(today)) {
+        return habit;
+      }
+
+      return {
+        ...habit,
+        completions: habit.completions.filter((entry) => entry !== today),
+        totalCompletions: Math.max(0, habit.totalCompletions - 1),
+      };
+    });
+
+    persistHabits();
+  });
+
+  todoForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const title = todoInput.value.trim();
+    if (!title) {
+      return;
+    }
+
+    todos.unshift({
+      id: crypto.randomUUID(),
+      title,
+      category: todoCategorySelect.value,
+      completed: false,
+      createdAt: new Date().toISOString(),
+    });
+
+    persistTodos();
+    todoForm.reset();
+    todoCategorySelect.value = "School";
+    todoInput.focus();
+  });
+
+  filterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      currentFilter = button.dataset.filter;
+
+      filterButtons.forEach((item) => {
+        item.classList.toggle("active", item === button);
+      });
+
+      renderTodos();
+      updateStats();
+    });
+  });
+
+  clearCompletedButton.addEventListener("click", () => {
+    todos = todos.filter((todo) => !todo.completed);
+    persistTodos();
+  });
+
+  todoList.addEventListener("click", (event) => {
+    const target = event.target;
+    const item = target.closest(".todo-item");
+
+    if (!item) {
+      return;
+    }
+
+    const { id } = item.dataset;
+
+    if (target.matches("[data-action='delete']")) {
+      todos = todos.filter((todo) => todo.id !== id);
+      persistTodos();
+    }
+  });
+
+  todoList.addEventListener("change", (event) => {
+    const target = event.target;
+
+    if (!target.matches(".checkbox")) {
+      return;
+    }
+
+    const item = target.closest(".todo-item");
+    const todo = todos.find(({ id }) => id === item.dataset.id);
+
+    if (!todo) {
+      return;
+    }
+
+    todo.completed = target.checked;
+    persistTodos();
+  });
+
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setActiveTab(button.dataset.tab);
+    });
+  });
+}
+
+function render() {
+  renderHabits();
+  renderTodos();
+  updateStats();
+}
+
+function renderHabits() {
+  const today = getTodayKey();
+  const completedToday = habits.filter((habit) => habit.completions.includes(today)).length;
+
+  todayDate.textContent = new Intl.DateTimeFormat(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date());
+
+  todaySummary.textContent = `${completedToday} of ${habits.length} habits completed`;
+  resetTodayButton.disabled = completedToday === 0;
+  resetTodayButton.style.opacity = completedToday === 0 ? "0.45" : "1";
+
+  habitList.innerHTML = "";
+
+  if (habits.length === 0) {
+    habitList.append(habitEmptyTemplate.content.cloneNode(true));
+    return;
+  }
+
+  habits.forEach((habit) => {
+    habitList.append(createHabitCard(habit, today));
+  });
+}
+
+function renderTodos() {
+  const filteredTodos = todos.filter((todo) => {
+    if (currentFilter === "open") {
+      return !todo.completed;
+    }
+
+    if (currentFilter === "done") {
+      return todo.completed;
+    }
+
+    return true;
+  });
+
+  todoList.innerHTML = "";
+
+  if (filteredTodos.length === 0) {
+    todoList.append(todoEmptyTemplate.content.cloneNode(true));
+  } else {
+    filteredTodos.forEach((todo) => {
+      todoList.append(createTodoElement(todo));
+    });
+  }
+
+  const done = todos.filter((todo) => todo.completed).length;
+  const open = todos.length - done;
+
+  openCount.textContent = String(open);
+  doneCount.textContent = String(done);
+  clearCompletedButton.disabled = done === 0;
+  clearCompletedButton.style.opacity = done === 0 ? "0.45" : "1";
+}
+
+function updateStats() {
+  const today = getTodayKey();
+  const completedHabits = habits.filter((habit) => habit.completions.includes(today)).length;
+  const openTasks = todos.filter((todo) => !todo.completed).length;
+
+  habitStat.textContent = String(completedHabits);
+  taskStat.textContent = String(openTasks);
+}
+
+function setActiveTab(tabName) {
+  activeTab = tabName === "todos" ? "todos" : "habits";
+  localStorage.setItem(TAB_STORAGE_KEY, activeTab);
+
+  tabButtons.forEach((button) => {
+    const isActive = button.dataset.tab === activeTab;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+
+  tabPanels.forEach((panel) => {
+    const isActive = panel.id === `panel-${activeTab}`;
+    panel.classList.toggle("active", isActive);
+    panel.hidden = !isActive;
+  });
+}
+
+function persistHabits() {
+  localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habits));
+  render();
+}
+
+function persistTodos() {
+  localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(todos));
   render();
 }
 
 function loadHabits() {
   try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+    const stored = JSON.parse(localStorage.getItem(HABIT_STORAGE_KEY) ?? "[]");
     if (!Array.isArray(stored)) {
       return [];
     }
@@ -116,30 +313,17 @@ function loadHabits() {
   }
 }
 
-function render() {
-  const today = getTodayKey();
-  const completedToday = habits.filter((habit) => habit.completions.includes(today)).length;
-
-  todayDate.textContent = new Intl.DateTimeFormat(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(new Date());
-
-  todaySummary.textContent = `${completedToday} of ${habits.length} habits completed`;
-  resetTodayButton.disabled = completedToday === 0;
-  resetTodayButton.style.opacity = completedToday === 0 ? "0.45" : "1";
-
-  habitList.innerHTML = "";
-
-  if (habits.length === 0) {
-    habitList.append(emptyStateTemplate.content.cloneNode(true));
-    return;
+function loadTodos() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(TODO_STORAGE_KEY) ?? "[]");
+    return Array.isArray(stored) ? stored : [];
+  } catch {
+    return [];
   }
+}
 
-  habits.forEach((habit) => {
-    habitList.append(createHabitCard(habit, today));
-  });
+function loadActiveTab() {
+  return localStorage.getItem(TAB_STORAGE_KEY) === "todos" ? "todos" : "habits";
 }
 
 function createHabitCard(habit, today) {
@@ -163,7 +347,7 @@ function createHabitCard(habit, today) {
       <div class="heatmap">
         <div class="heatmap-header">
           <p class="heatmap-title">${currentYear} overview</p>
-          <p class="heatmap-legend">Darker cells = completed days</p>
+          <p class="heatmap-legend">Colored cells = completed days</p>
         </div>
         ${createHeatmapMarkup(habit.completions, currentYear)}
       </div>
@@ -181,10 +365,36 @@ function createHabitCard(habit, today) {
   return card;
 }
 
+function createTodoElement(todo) {
+  const item = document.createElement("li");
+  item.className = `todo-item${todo.completed ? " done" : ""}`;
+  item.dataset.id = todo.id;
+
+  item.innerHTML = `
+    <input
+      class="checkbox"
+      type="checkbox"
+      aria-label="Mark ${escapeHtml(todo.title)} as complete"
+      ${todo.completed ? "checked" : ""}
+    />
+    <div class="task-copy">
+      <p class="task-title">${escapeHtml(todo.title)}</p>
+      <p class="task-meta">${escapeHtml(todo.category)} · ${formatDate(todo.createdAt)}</p>
+    </div>
+    <div class="task-actions">
+      <button class="delete-button" type="button" data-action="delete" aria-label="Delete ${
+        escapeHtml(todo.title)
+      }">
+        Delete
+      </button>
+    </div>
+  `;
+
+  return item;
+}
+
 function createHeatmapMarkup(completions, year) {
-  const completed = new Set(
-    completions.filter((entry) => entry.startsWith(`${year}-`))
-  );
+  const completed = new Set(completions.filter((entry) => entry.startsWith(`${year}-`)));
   const formatter = new Intl.DateTimeFormat(undefined, { month: "short" });
   const rows = [];
 
@@ -198,11 +408,7 @@ function createHeatmapMarkup(completions, year) {
         continue;
       }
 
-      const dayKey = [
-        year,
-        String(month + 1).padStart(2, "0"),
-        String(day).padStart(2, "0"),
-      ].join("-");
+      const dayKey = [year, String(month + 1).padStart(2, "0"), String(day).padStart(2, "0")].join("-");
       const label = new Intl.DateTimeFormat(undefined, {
         month: "short",
         day: "numeric",
@@ -270,6 +476,15 @@ function shiftDayKey(dayKey, offset) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+  }).format(date);
 }
 
 function escapeHtml(value) {

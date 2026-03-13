@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Habit Garden</title>
+    <title>Momentum Desk</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -15,71 +15,207 @@
   <body>
     <div class="app-shell">
       <header class="hero">
-        <div>
-          <p class="eyebrow">Daily Habit Tracker</p>
-          <h1>Habit Garden</h1>
+        <div class="hero-copy">
+          <p class="eyebrow">Personal Productivity App</p>
+          <h1>Momentum Desk</h1>
           <p class="hero-text">
-            Add habits, check them off each day, and watch your consistency build
-            over time.
+            Track habits over the year, manage today&apos;s tasks, and keep both
+            routines in one focused workspace.
           </p>
         </div>
-        <div class="today-card panel">
-          <span class="today-label">Today</span>
-          <strong id="today-date"></strong>
-          <p id="today-summary">0 of 0 habits completed</p>
+
+        <div class="hero-side">
+          <div class="today-card panel">
+            <span class="today-label">Today</span>
+            <strong id="today-date"></strong>
+            <p id="today-summary">0 of 0 habits completed</p>
+          </div>
+
+          <div class="stat-strip panel">
+            <div class="stat-card">
+              <span class="stat-label">Habits done</span>
+              <strong id="habit-stat">0</strong>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Open tasks</span>
+              <strong id="task-stat">0</strong>
+            </div>
+          </div>
         </div>
       </header>
 
       <main class="layout">
-        <section class="panel">
-          <form id="habit-form" class="habit-form">
-            <label class="field">
-              <span>Habit name</span>
-              <input
-                id="habit-name"
-                name="habit"
-                type="text"
-                maxlength="100"
-                placeholder="Drink 8 glasses of water"
-                autocomplete="off"
-                required
-              />
-            </label>
-
-            <label class="field">
-              <span>Color</span>
-              <select id="habit-color" name="color">
-                <option value="sun">Sun</option>
-                <option value="mint">Mint</option>
-                <option value="ocean">Ocean</option>
-                <option value="berry">Berry</option>
-              </select>
-            </label>
-
-            <button type="submit" class="primary-button">Add habit</button>
-          </form>
-        </section>
-
-        <section class="panel">
-          <div class="section-heading">
-            <div>
-              <p class="section-kicker">Track today</p>
-              <h2>Your habits</h2>
-              <p class="section-note">Each card includes a full-year heatmap of completed days.</p>
-            </div>
-            <button id="reset-today" class="secondary-button" type="button">
-              Reset today
+        <section class="panel tabs-panel">
+          <div class="tabs" role="tablist" aria-label="Productivity tools">
+            <button
+              id="tab-habits"
+              class="tab-button active"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="panel-habits"
+              data-tab="habits"
+            >
+              Habit tracker
+            </button>
+            <button
+              id="tab-todos"
+              class="tab-button"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-todos"
+              data-tab="todos"
+            >
+              To-do list
             </button>
           </div>
+        </section>
 
-          <ul id="habit-list" class="habit-list" aria-live="polite"></ul>
+        <section
+          id="panel-habits"
+          class="tab-panel active"
+          role="tabpanel"
+          aria-labelledby="tab-habits"
+        >
+          <section class="panel">
+            <form id="habit-form" class="habit-form">
+              <label class="field">
+                <span>Habit name</span>
+                <input
+                  id="habit-name"
+                  name="habit"
+                  type="text"
+                  maxlength="100"
+                  placeholder="Drink 8 glasses of water"
+                  autocomplete="off"
+                  required
+                />
+              </label>
 
-          <template id="empty-state-template">
-            <li class="empty-state">
-              <h3>No habits yet</h3>
-              <p>Start with one small habit you want to repeat every day.</p>
-            </li>
-          </template>
+              <label class="field">
+                <span>Color</span>
+                <select id="habit-color" name="color">
+                  <option value="sun">Sun</option>
+                  <option value="mint">Mint</option>
+                  <option value="ocean">Ocean</option>
+                  <option value="berry">Berry</option>
+                </select>
+              </label>
+
+              <button type="submit" class="primary-button">Add habit</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">Track today</p>
+                <h2>Your habits</h2>
+                <p class="section-note">
+                  Each habit includes a full-year heatmap of completed days.
+                </p>
+              </div>
+              <button id="reset-today" class="secondary-button" type="button">
+                Reset today
+              </button>
+            </div>
+
+            <ul id="habit-list" class="habit-list" aria-live="polite"></ul>
+
+            <template id="habit-empty-template">
+              <li class="empty-state">
+                <h3>No habits yet</h3>
+                <p>Start with one small habit you want to repeat every day.</p>
+              </li>
+            </template>
+          </section>
+        </section>
+
+        <section
+          id="panel-todos"
+          class="tab-panel"
+          role="tabpanel"
+          aria-labelledby="tab-todos"
+          hidden
+        >
+          <section class="panel">
+            <form id="todo-form" class="todo-form">
+              <label class="field">
+                <span>Task</span>
+                <input
+                  id="todo-input"
+                  name="todo"
+                  type="text"
+                  maxlength="120"
+                  placeholder="Finish homework before dinner"
+                  autocomplete="off"
+                  required
+                />
+              </label>
+
+              <label class="field">
+                <span>Category</span>
+                <select id="todo-category" name="category">
+                  <option value="School">School</option>
+                  <option value="Work">Work</option>
+                  <option value="Personal">Personal</option>
+                  <option value="Errands">Errands</option>
+                </select>
+              </label>
+
+              <button type="submit" class="primary-button">Add task</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading todo-heading">
+              <div>
+                <p class="section-kicker">Plan today</p>
+                <h2>Your tasks</h2>
+                <p class="section-note">
+                  Filter what&apos;s left, mark items done, and clear completed
+                  tasks when you&apos;re finished.
+                </p>
+              </div>
+              <div class="todo-toolbar">
+                <div class="filters" role="tablist" aria-label="Task filters">
+                  <button class="filter-button active" data-filter="all" type="button">
+                    All
+                  </button>
+                  <button class="filter-button" data-filter="open" type="button">
+                    Open
+                  </button>
+                  <button class="filter-button" data-filter="done" type="button">
+                    Done
+                  </button>
+                </div>
+                <button id="clear-completed" class="secondary-button" type="button">
+                  Clear completed
+                </button>
+              </div>
+            </div>
+
+            <div class="todo-stats">
+              <div class="todo-stat-box">
+                <span class="stat-label">Open</span>
+                <strong id="open-count">0</strong>
+              </div>
+              <div class="todo-stat-box">
+                <span class="stat-label">Done</span>
+                <strong id="done-count">0</strong>
+              </div>
+            </div>
+
+            <ul id="todo-list" class="todo-list" aria-live="polite"></ul>
+
+            <template id="todo-empty-template">
+              <li class="empty-state">
+                <h3>No tasks yet</h3>
+                <p>Add your next task and keep your day moving.</p>
+              </li>
+            </template>
+          </section>
         </section>
       </main>
     </div>

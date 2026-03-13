@@ -1,10 +1,10 @@
 :root {
-  --bg: #f6f5ef;
-  --panel: rgba(255, 255, 255, 0.78);
-  --border: rgba(34, 47, 36, 0.1);
-  --text: #1d2b1f;
-  --muted: #607164;
-  --shadow: 0 20px 50px rgba(42, 59, 44, 0.12);
+  --bg: #f4f1ea;
+  --panel: rgba(255, 252, 247, 0.8);
+  --border: rgba(39, 54, 41, 0.1);
+  --text: #1f2d22;
+  --muted: #66756a;
+  --shadow: 0 20px 50px rgba(38, 54, 40, 0.12);
   --sun: linear-gradient(135deg, #ffd97a, #ff9b73);
   --mint: linear-gradient(135deg, #b9efc6, #63c7a6);
   --ocean: linear-gradient(135deg, #9fd6ff, #4e8de7);
@@ -21,9 +21,9 @@ body {
   font-family: "Sora", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at top left, rgba(99, 199, 166, 0.24), transparent 30%),
-    radial-gradient(circle at right, rgba(78, 141, 231, 0.16), transparent 24%),
-    linear-gradient(180deg, #fbfaf5 0%, var(--bg) 100%);
+    radial-gradient(circle at top left, rgba(99, 199, 166, 0.2), transparent 28%),
+    radial-gradient(circle at right, rgba(78, 141, 231, 0.12), transparent 24%),
+    linear-gradient(180deg, #fcfaf6 0%, var(--bg) 100%);
 }
 
 body::before {
@@ -32,14 +32,14 @@ body::before {
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
-  background-size: 28px 28px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 90%);
+    linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 90%);
 }
 
 .app-shell {
-  width: min(1100px, calc(100% - 2rem));
+  width: min(1180px, calc(100% - 2rem));
   margin: 0 auto;
   padding: 2rem 0 4rem;
 }
@@ -47,14 +47,20 @@ body::before {
 .hero {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 320px);
-  align-items: end;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 360px);
+  align-items: stretch;
   margin-bottom: 1.5rem;
+}
+
+.hero-copy,
+.hero-side {
+  min-width: 0;
 }
 
 .eyebrow,
 .section-kicker,
-.today-label {
+.today-label,
+.stat-label {
   margin: 0 0 0.45rem;
   font-size: 0.78rem;
   text-transform: uppercase;
@@ -71,18 +77,24 @@ h3 {
 }
 
 h1 {
-  font-size: clamp(3rem, 7vw, 5.5rem);
-  line-height: 0.95;
+  font-size: clamp(3rem, 7vw, 5.6rem);
+  line-height: 0.94;
 }
 
 .hero-text {
-  max-width: 34rem;
+  max-width: 38rem;
   margin: 0.9rem 0 0;
   color: var(--muted);
-  line-height: 1.6;
+  line-height: 1.7;
+}
+
+.hero-side {
+  display: grid;
+  gap: 1rem;
 }
 
 .panel {
+  padding: 1.2rem;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 28px;
@@ -90,14 +102,10 @@ h1 {
   backdrop-filter: blur(18px);
 }
 
-.today-card {
-  padding: 1.35rem;
-}
-
 .today-card strong {
   display: block;
   font-size: 1.8rem;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
 }
 
 .today-card p {
@@ -105,16 +113,70 @@ h1 {
   color: var(--muted);
 }
 
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.stat-card {
+  padding: 0.1rem 0;
+}
+
+.stat-card strong,
+.todo-stat-box strong {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+}
+
 .layout {
   display: grid;
   gap: 1.25rem;
 }
 
-.panel {
-  padding: 1.2rem;
+.tabs-panel {
+  padding: 0.7rem;
 }
 
-.habit-form {
+.tabs {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  width: min(100%, 420px);
+  background: rgba(31, 45, 34, 0.05);
+  border-radius: 999px;
+  padding: 0.35rem;
+}
+
+.tab-button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.tab-button.active {
+  background: white;
+  color: var(--text);
+  box-shadow: 0 8px 18px rgba(33, 47, 35, 0.08);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.habit-form,
+.todo-form {
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(0, 1.6fr) minmax(160px, 220px) auto;
@@ -126,14 +188,13 @@ h1 {
   gap: 0.45rem;
 }
 
-.field span {
-  font-size: 0.82rem;
+.field span,
+.section-note {
   color: var(--muted);
 }
 
 .section-note {
   margin: 0.35rem 0 0;
-  color: var(--muted);
   font-size: 0.92rem;
 }
 
@@ -146,17 +207,17 @@ button {
 input,
 select {
   width: 100%;
-  border: 1px solid rgba(34, 47, 36, 0.12);
+  border: 1px solid rgba(39, 54, 41, 0.12);
   border-radius: 16px;
   padding: 0.95rem 1rem;
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.88);
   color: var(--text);
 }
 
 input:focus,
 select:focus,
 button:focus-visible {
-  outline: 2px solid rgba(78, 141, 231, 0.25);
+  outline: 2px solid rgba(78, 141, 231, 0.22);
   outline-offset: 2px;
 }
 
@@ -167,7 +228,12 @@ button {
   transition:
     transform 160ms ease,
     opacity 160ms ease,
-    background-color 160ms ease;
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
 }
 
 .primary-button {
@@ -176,14 +242,12 @@ button {
   background: linear-gradient(135deg, #1f7a5a, #3c9b73);
 }
 
-.secondary-button {
+.secondary-button,
+.filter-button,
+.delete-button {
   padding: 0.75rem 1rem;
-  background: rgba(29, 43, 31, 0.07);
+  background: rgba(31, 45, 34, 0.07);
   color: var(--text);
-}
-
-button:hover {
-  transform: translateY(-1px);
 }
 
 .section-heading {
@@ -194,7 +258,8 @@ button:hover {
   margin-bottom: 1rem;
 }
 
-.habit-list {
+.habit-list,
+.todo-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -202,19 +267,29 @@ button:hover {
   gap: 0.9rem;
 }
 
-.habit-card {
+.habit-card,
+.todo-item {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 1rem;
-  align-items: start;
   padding: 1rem;
   border-radius: 22px;
-  border: 1px solid rgba(34, 47, 36, 0.08);
+  border: 1px solid rgba(39, 54, 41, 0.08);
   background: rgba(255, 255, 255, 0.78);
   animation: bloom 220ms ease;
 }
 
-.habit-card.is-complete {
+.habit-card {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.todo-item {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.habit-card.is-complete,
+.todo-item.done {
   box-shadow: inset 0 0 0 1px rgba(31, 122, 90, 0.16);
 }
 
@@ -240,20 +315,28 @@ button:hover {
   background: var(--berry);
 }
 
-.habit-name {
+.habit-content,
+.task-copy {
+  min-width: 0;
+}
+
+.habit-name,
+.task-title {
   margin: 0 0 0.35rem;
   font-size: 1.05rem;
 }
 
-.habit-meta {
+.habit-meta,
+.task-meta {
   margin: 0;
   color: var(--muted);
   font-size: 0.85rem;
   line-height: 1.45;
 }
 
-.habit-content {
-  min-width: 0;
+.todo-item.done .task-title {
+  color: var(--muted);
+  text-decoration: line-through;
 }
 
 .heatmap {
@@ -294,9 +377,9 @@ button:hover {
 
 .heatmap-cell {
   aspect-ratio: 1;
-  border: 1px solid rgba(34, 47, 36, 0.08);
+  border: 1px solid rgba(39, 54, 41, 0.08);
   border-radius: 4px;
-  background: rgba(96, 113, 100, 0.12);
+  background: rgba(102, 117, 106, 0.12);
 }
 
 .heatmap-cell.is-complete {
@@ -323,19 +406,16 @@ button:hover {
   background: #cc6f99;
 }
 
-.habit-actions {
+.habit-actions,
+.task-actions {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   align-items: end;
 }
 
-.check-button,
-.delete-button {
-  padding: 0.72rem 1rem;
-}
-
 .check-button {
+  padding: 0.72rem 1rem;
   color: white;
   background: linear-gradient(135deg, #4679db, #6ca8f0);
 }
@@ -344,9 +424,65 @@ button:hover {
   background: linear-gradient(135deg, #1f7a5a, #3c9b73);
 }
 
-.delete-button {
-  background: rgba(29, 43, 31, 0.07);
-  color: var(--muted);
+.checkbox {
+  appearance: none;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  border: 2px solid rgba(61, 122, 82, 0.38);
+  display: grid;
+  place-items: center;
+  margin: 0;
+  cursor: pointer;
+}
+
+.checkbox:checked {
+  background: #2f805a;
+  border-color: #2f805a;
+}
+
+.checkbox:checked::after {
+  content: "";
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: white;
+}
+
+.todo-heading {
+  align-items: start;
+}
+
+.todo-toolbar {
+  display: grid;
+  gap: 0.8rem;
+  justify-items: end;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: end;
+}
+
+.filter-button.active {
+  background: #1f2d22;
+  color: white;
+}
+
+.todo-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.todo-stat-box {
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(39, 54, 41, 0.07);
 }
 
 .empty-state {
@@ -371,9 +507,10 @@ button:hover {
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 920px) {
   .hero,
-  .habit-form {
+  .habit-form,
+  .todo-form {
     grid-template-columns: 1fr;
   }
 
@@ -381,11 +518,19 @@ button:hover {
     flex-direction: column;
     align-items: stretch;
   }
+
+  .todo-toolbar {
+    justify-items: stretch;
+  }
+
+  .filters {
+    justify-content: flex-start;
+  }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .app-shell {
-    width: min(100% - 1rem, 1100px);
+    width: min(100% - 1rem, 1180px);
     padding-top: 1rem;
   }
 
@@ -393,11 +538,17 @@ button:hover {
     border-radius: 22px;
   }
 
-  .habit-card {
+  .tabs {
+    width: 100%;
+  }
+
+  .habit-card,
+  .todo-item {
     grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .habit-actions {
+  .habit-actions,
+  .task-actions {
     grid-column: 2;
     align-items: stretch;
   }
