@@ -1,0 +1,99 @@
+wh<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Momentum List</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <p class="eyebrow">Daily focus</p>
+        <div class="hero-copy">
+          <h1>Momentum List</h1>
+          <p>
+            A calm to-do list for keeping today clear, visible, and moving.
+          </p>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-card">
+            <span class="stat-label">Open</span>
+            <strong id="open-count">0</strong>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Done</span>
+            <strong id="done-count">0</strong>
+          </div>
+        </div>
+      </header>
+
+      <main class="board">
+        <section class="composer panel">
+          <form id="todo-form" class="composer-form">
+            <label class="field">
+              <span>Task</span>
+              <input
+                id="todo-input"
+                name="todo"
+                type="text"
+                maxlength="120"
+                placeholder="Finish landing page copy"
+                autocomplete="off"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span>Category</span>
+              <select id="todo-category" name="category">
+                <option value="Work">Work</option>
+                <option value="Personal">Personal</option>
+                <option value="Errands">Errands</option>
+                <option value="Ideas">Ideas</option>
+              </select>
+            </label>
+
+            <button type="submit" class="primary-button">Add task</button>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="toolbar">
+            <div class="filters" role="tablist" aria-label="Task filters">
+              <button class="filter-button active" data-filter="all" type="button">
+                All
+              </button>
+              <button class="filter-button" data-filter="open" type="button">
+                Open
+              </button>
+              <button class="filter-button" data-filter="done" type="button">
+                Done
+              </button>
+            </div>
+            <button id="clear-completed" class="ghost-button" type="button">
+              Clear completed
+            </button>
+          </div>
+
+          <ul id="todo-list" class="todo-list" aria-live="polite"></ul>
+
+          <template id="empty-state-template">
+            <li class="empty-state">
+              <h2>No tasks here yet</h2>
+              <p>Add something small and get momentum going.</p>
+            </li>
+          </template>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
