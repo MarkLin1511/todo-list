@@ -131,6 +131,12 @@ h1 {
   color: var(--muted);
 }
 
+.section-note {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 input,
 select,
 button {
@@ -200,7 +206,7 @@ button:hover {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 1rem;
-  align-items: center;
+  align-items: start;
   padding: 1rem;
   border-radius: 22px;
   border: 1px solid rgba(34, 47, 36, 0.08);
@@ -244,6 +250,77 @@ button:hover {
   color: var(--muted);
   font-size: 0.85rem;
   line-height: 1.45;
+}
+
+.habit-content {
+  min-width: 0;
+}
+
+.heatmap {
+  margin-top: 0.95rem;
+}
+
+.heatmap-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+  margin-bottom: 0.55rem;
+}
+
+.heatmap-title,
+.heatmap-legend {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.heatmap-rows {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.heatmap-row {
+  display: grid;
+  grid-template-columns: 2.6rem repeat(31, minmax(0, 1fr));
+  gap: 0.28rem;
+  align-items: center;
+}
+
+.heatmap-month {
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+
+.heatmap-cell {
+  aspect-ratio: 1;
+  border: 1px solid rgba(34, 47, 36, 0.08);
+  border-radius: 4px;
+  background: rgba(96, 113, 100, 0.12);
+}
+
+.heatmap-cell.is-complete {
+  border-color: transparent;
+}
+
+.heatmap-cell.is-filler {
+  opacity: 0;
+}
+
+.habit-card[data-color="sun"] .heatmap-cell.is-complete {
+  background: #f7b968;
+}
+
+.habit-card[data-color="mint"] .heatmap-cell.is-complete {
+  background: #53b889;
+}
+
+.habit-card[data-color="ocean"] .heatmap-cell.is-complete {
+  background: #4e8de7;
+}
+
+.habit-card[data-color="berry"] .heatmap-cell.is-complete {
+  background: #cc6f99;
 }
 
 .habit-actions {
@@ -323,5 +400,9 @@ button:hover {
   .habit-actions {
     grid-column: 2;
     align-items: stretch;
+  }
+
+  .heatmap-row {
+    gap: 0.18rem;
   }
 }

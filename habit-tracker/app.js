@@ -146,6 +146,7 @@ function createHabitCard(habit, today) {
   const card = document.createElement("li");
   const completedToday = habit.completions.includes(today);
   const streak = calculateStreak(habit.completions);
+  const currentYear = new Date().getFullYear();
 
   card.className = `habit-card${completedToday ? " is-complete" : ""}`;
   card.dataset.id = habit.id;
@@ -153,12 +154,19 @@ function createHabitCard(habit, today) {
 
   card.innerHTML = `
     <div class="habit-badge" aria-hidden="true"></div>
-    <div>
+    <div class="habit-content">
       <p class="habit-name">${escapeHtml(habit.name)}</p>
       <p class="habit-meta">
         Current streak: ${streak} day${streak === 1 ? "" : "s"} ·
         Total check-ins: ${habit.totalCompletions}
       </p>
+      <div class="heatmap">
+        <div class="heatmap-header">
+          <p class="heatmap-title">${currentYear} overview</p>
+          <p class="heatmap-legend">Darker cells = completed days</p>
+        </div>
+        ${createHeatmapMarkup(habit.completions, currentYear)}
+      </div>
     </div>
     <div class="habit-actions">
       <button class="check-button" type="button" data-action="toggle">
@@ -171,6 +179,50 @@ function createHabitCard(habit, today) {
   `;
 
   return card;
+}
+
+function createHeatmapMarkup(completions, year) {
+  const completed = new Set(
+    completions.filter((entry) => entry.startsWith(`${year}-`))
+  );
+  const formatter = new Intl.DateTimeFormat(undefined, { month: "short" });
+  const rows = [];
+
+  for (let month = 0; month < 12; month += 1) {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cells = [];
+
+    for (let day = 1; day <= 31; day += 1) {
+      if (day > daysInMonth) {
+        cells.push('<span class="heatmap-cell is-filler" aria-hidden="true"></span>');
+        continue;
+      }
+
+      const dayKey = [
+        year,
+        String(month + 1).padStart(2, "0"),
+        String(day).padStart(2, "0"),
+      ].join("-");
+      const label = new Intl.DateTimeFormat(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }).format(new Date(`${dayKey}T12:00:00`));
+
+      cells.push(
+        `<span class="heatmap-cell${completed.has(dayKey) ? " is-complete" : ""}" title="${label}"></span>`
+      );
+    }
+
+    rows.push(`
+      <div class="heatmap-row">
+        <span class="heatmap-month">${formatter.format(new Date(year, month, 1))}</span>
+        ${cells.join("")}
+      </div>
+    `);
+  }
+
+  return `<div class="heatmap-rows">${rows.join("")}</div>`;
 }
 
 function calculateStreak(completions) {
