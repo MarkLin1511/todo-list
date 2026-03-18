@@ -521,6 +521,26 @@ button:focus-visible {
   font-size: clamp(2rem, 4vw, 2.8rem);
 }
 
+.welcome-panel {
+  margin-bottom: 1.3rem;
+  padding: 1.5rem 1.6rem;
+  background:
+    radial-gradient(circle at top right, rgba(255, 143, 112, 0.16), transparent 30%),
+    radial-gradient(circle at left center, rgba(122, 163, 255, 0.18), transparent 32%),
+    linear-gradient(180deg, rgba(16, 24, 40, 0.96), rgba(10, 16, 28, 0.94));
+}
+
+.welcome-panel h2 {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+}
+
+.welcome-text {
+  max-width: 48rem;
+  margin: 0.8rem 0 0;
+  color: var(--muted-strong);
+  font-size: 1.03rem;
+}
+
 .guest-layout {
   display: grid;
   gap: 1.25rem;
