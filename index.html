@@ -362,6 +362,10 @@
                   <span>Add photos</span>
                   <input id="entry-photos-input" type="file" accept="image/*" multiple />
                 </label>
+                <p class="tiny-note">
+                  Photos upload to Vercel Blob and are compressed in the browser
+                  first to keep uploads smooth.
+                </p>
               </div>
 
               <div id="editor-gallery" class="editor-gallery"></div>
@@ -408,6 +412,7 @@
                     type="text"
                     maxlength="40"
                     autocomplete="off"
+                    placeholder="bowling"
                     required
                   />
                 </label>
@@ -419,9 +424,15 @@
                     type="text"
                     maxlength="40"
                     autocomplete="off"
+                    placeholder="strike"
                     required
                   />
                 </label>
+
+                <p class="tiny-note">
+                  These are stored securely on the backend now, so enter the new
+                  values you want to save.
+                </p>
 
                 <button class="secondary-button full-width" type="submit">
                   Save passwords

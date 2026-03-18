@@ -1,12 +1,4 @@
-const STORAGE_KEY = "frames-and-days-data-v1";
-const SESSION_KEY = "frames-and-days-session-v1";
 const APP_YEAR = 2026;
-
-const DEFAULT_STATE = {
-  guestPassword: "bowling",
-  markPassword: "strike",
-  entries: [],
-};
 
 const dom = {
   gateView: document.querySelector("#gate-view"),
@@ -75,24 +67,32 @@ const dom = {
   closeLightboxButton: document.querySelector("#close-lightbox"),
 };
 
-let state = loadState();
-let session = loadSession();
+let state = {
+  entries: [],
+  publicEntries: [],
+};
+
+let session = {
+  adminUnlocked: false,
+  guestUnlocked: false,
+};
+
 let ui = {
-  currentView: session.adminUnlocked ? "admin" : session.guestUnlocked ? "guest" : "gate",
+  currentView: "gate",
   selectedEntryId: null,
   activeTag: "all",
   searchQuery: "",
   editorImages: [],
 };
 
-seedEditorDate();
-ensureSelectedEntry();
 bindEvents();
+seedEditorDate();
 render();
+boot();
 
 function bindEvents() {
   dom.guestLoginForm.addEventListener("submit", handleGuestLogin);
-  dom.guestLogoutButton.addEventListener("click", lockArchive);
+  dom.guestLogoutButton.addEventListener("click", handleLogout);
   dom.jumpLatestButton.addEventListener("click", openLatestEntry);
   dom.markLoginLaunch.addEventListener("click", handleMarkButtonClick);
   dom.markLoginForm.addEventListener("submit", handleMarkLogin);
@@ -149,15 +149,7 @@ function bindEvents() {
     setView("guest");
   });
 
-  dom.adminLogout.addEventListener("click", () => {
-    session = { guestUnlocked: false, adminUnlocked: false };
-    saveSession();
-    closeMarkModal();
-    setView("gate");
-    setFeedback(dom.markLoginFeedback, "");
-    setFeedback(dom.guestLoginFeedback, "");
-  });
-
+  dom.adminLogout.addEventListener("click", handleLogout);
   dom.entryForm.addEventListener("submit", handleEntrySave);
   dom.clearEditorButton.addEventListener("click", () => {
     resetEditor("Composer cleared.", "success");
@@ -225,6 +217,19 @@ function bindEvents() {
   });
 }
 
+async function boot() {
+  try {
+    await refreshSessionAndData();
+  } catch (issue) {
+    setFeedback(
+      dom.guestLoginFeedback,
+      issue.message || "The backend is not reachable yet. Finish the Vercel setup and redeploy.",
+      "error"
+    );
+    render();
+  }
+}
+
 function render() {
   ensureSelectedEntry();
   renderScreenState();
@@ -275,8 +280,8 @@ function renderHeatmap(entries) {
       const entry = entryByDate.get(dateKey);
       const isSelected = entry && entry.id === ui.selectedEntryId;
       const label = entry
-        ? `${formatFullDate(dateKey)} — ${entry.title}`
-        : `${formatFullDate(dateKey)} — no entry published`;
+        ? `${formatFullDate(dateKey)} - ${entry.title}`
+        : `${formatFullDate(dateKey)} - no entry published`;
 
       cells.push(`
         <button
@@ -401,8 +406,6 @@ function renderAdmin() {
   const draftCount = state.entries.filter((entry) => entry.status === "draft").length;
   dom.adminEntryCount.textContent = String(state.entries.length);
   dom.adminDraftCount.textContent = String(draftCount);
-  dom.guestPasswordSetting.value = state.guestPassword;
-  dom.markPasswordSetting.value = state.markPassword;
 
   renderAdminLibrary();
   renderEditorGallery();
@@ -494,38 +497,45 @@ function renderEditorGallery() {
     .join("");
 }
 
-function handleGuestLogin(event) {
+async function handleGuestLogin(event) {
   event.preventDefault();
-  const candidate = dom.guestPasswordInput.value.trim();
 
-  if (candidate !== state.guestPassword) {
-    setFeedback(dom.guestLoginFeedback, "That guest password does not match.", "error");
-    return;
+  try {
+    await apiFetch("/api/auth/guest-login", {
+      method: "POST",
+      body: JSON.stringify({
+        password: dom.guestPasswordInput.value.trim(),
+      }),
+    });
+
+    dom.guestPasswordInput.value = "";
+    setFeedback(dom.guestLoginFeedback, "");
+    await refreshSessionAndData();
+    setView("guest");
+  } catch (issue) {
+    setFeedback(dom.guestLoginFeedback, issue.message, "error");
   }
-
-  session.guestUnlocked = true;
-  saveSession();
-  dom.guestPasswordInput.value = "";
-  setFeedback(dom.guestLoginFeedback, "");
-  setView("guest");
 }
 
-function handleMarkLogin(event) {
+async function handleMarkLogin(event) {
   event.preventDefault();
-  const candidate = dom.markPasswordInput.value.trim();
 
-  if (candidate !== state.markPassword) {
-    setFeedback(dom.markLoginFeedback, "That Mark password does not match.", "error");
-    return;
+  try {
+    await apiFetch("/api/auth/mark-login", {
+      method: "POST",
+      body: JSON.stringify({
+        password: dom.markPasswordInput.value.trim(),
+      }),
+    });
+
+    dom.markPasswordInput.value = "";
+    setFeedback(dom.markLoginFeedback, "");
+    closeMarkModal();
+    await refreshSessionAndData();
+    setView("admin");
+  } catch (issue) {
+    setFeedback(dom.markLoginFeedback, issue.message, "error");
   }
-
-  session.adminUnlocked = true;
-  session.guestUnlocked = true;
-  saveSession();
-  dom.markPasswordInput.value = "";
-  setFeedback(dom.markLoginFeedback, "");
-  closeMarkModal();
-  setView("admin");
 }
 
 function handleMarkButtonClick() {
@@ -537,7 +547,7 @@ function handleMarkButtonClick() {
   openMarkModal();
 }
 
-function handleEntrySave(event) {
+async function handleEntrySave(event) {
   event.preventDefault();
 
   const entryId = dom.entryIdInput.value || crypto.randomUUID();
@@ -556,54 +566,46 @@ function handleEntrySave(event) {
     return;
   }
 
-  const duplicate = state.entries.find((entry) => entry.date === date && entry.id !== entryId);
-  if (duplicate) {
+  try {
+    const response = await apiFetch("/api/admin/entries", {
+      method: "POST",
+      body: JSON.stringify({
+        id: entryId,
+        date,
+        title,
+        location,
+        mood,
+        excerpt,
+        body,
+        journal,
+        tags,
+        images: ui.editorImages,
+        status,
+      }),
+    });
+
+    const nextEntry = normalizeEntry(response.entry);
+    upsertEntry(nextEntry);
+
+    if (nextEntry.status === "published" && nextEntry.date.startsWith(`${APP_YEAR}-`)) {
+      ui.selectedEntryId = nextEntry.id;
+    } else {
+      ensureSelectedEntry();
+    }
+
+    populateEditor(nextEntry);
+    render();
     setFeedback(
       dom.editorFeedback,
-      "There is already an entry for that date. Open it from the library to edit it instead.",
-      "error"
+      `${nextEntry.status === "published" ? "Published" : "Saved draft for"} ${formatFullDate(nextEntry.date)}.`,
+      "success"
     );
-    return;
+  } catch (issue) {
+    setFeedback(dom.editorFeedback, issue.message, "error");
   }
-
-  const nextEntry = normalizeEntry({
-    id: entryId,
-    date,
-    title,
-    location,
-    mood,
-    excerpt,
-    body,
-    journal,
-    tags,
-    images: ui.editorImages,
-    status,
-    updatedAt: new Date().toISOString(),
-  });
-
-  state.entries = sortEntries([
-    ...state.entries.filter((entry) => entry.id !== entryId),
-    nextEntry,
-  ]);
-
-  saveState();
-
-  if (nextEntry.status === "published" && nextEntry.date.startsWith(`${APP_YEAR}-`)) {
-    ui.selectedEntryId = nextEntry.id;
-  } else {
-    ensureSelectedEntry();
-  }
-
-  populateEditor(nextEntry);
-  render();
-  setFeedback(
-    dom.editorFeedback,
-    `${nextEntry.status === "published" ? "Published" : "Saved draft for"} ${formatFullDate(nextEntry.date)}.`,
-    "success"
-  );
 }
 
-function handleDeleteEntry() {
+async function handleDeleteEntry() {
   const entryId = dom.entryIdInput.value;
   if (!entryId) {
     return;
@@ -619,15 +621,23 @@ function handleDeleteEntry() {
     return;
   }
 
-  state.entries = state.entries.filter((item) => item.id !== entryId);
-  saveState();
+  try {
+    await apiFetch(`/api/admin/entries?id=${encodeURIComponent(entryId)}`, {
+      method: "DELETE",
+    });
 
-  if (ui.selectedEntryId === entryId) {
-    ui.selectedEntryId = null;
+    state.entries = state.entries.filter((item) => item.id !== entryId);
+    state.publicEntries = state.publicEntries.filter((item) => item.id !== entryId);
+
+    if (ui.selectedEntryId === entryId) {
+      ui.selectedEntryId = null;
+    }
+
+    resetEditor(`Deleted ${formatFullDate(entry.date)}.`, "success");
+    render();
+  } catch (issue) {
+    setFeedback(dom.editorFeedback, issue.message, "error");
   }
-
-  resetEditor(`Deleted ${formatFullDate(entry.date)}.`, "success");
-  render();
 }
 
 async function handlePhotoUpload(event) {
@@ -636,43 +646,73 @@ async function handlePhotoUpload(event) {
     return;
   }
 
+  setFeedback(dom.editorFeedback, "Uploading photos...", "success");
+
   try {
-    const images = await Promise.all(files.map(readFileAsDataUrl));
-    ui.editorImages.push(...images);
+    const uploadedUrls = [];
+
+    for (const file of files) {
+      const optimized = await optimizeImage(file);
+      const uploaded = await uploadImage(optimized);
+      uploadedUrls.push(uploaded.url);
+    }
+
+    ui.editorImages.push(...uploadedUrls);
     renderEditorGallery();
-    setFeedback(dom.editorFeedback, `${files.length} photo${files.length === 1 ? "" : "s"} added.`, "success");
-  } catch {
-    setFeedback(dom.editorFeedback, "One of those photos could not be loaded.", "error");
+    setFeedback(
+      dom.editorFeedback,
+      `${uploadedUrls.length} photo${uploadedUrls.length === 1 ? "" : "s"} uploaded.`,
+      "success"
+    );
+  } catch (issue) {
+    setFeedback(dom.editorFeedback, issue.message || "One of the photos could not be uploaded.", "error");
   } finally {
     dom.entryPhotosInput.value = "";
   }
 }
 
-function handlePasswordSave(event) {
+async function handlePasswordSave(event) {
   event.preventDefault();
+
   const guestPassword = dom.guestPasswordSetting.value.trim();
   const markPassword = dom.markPasswordSetting.value.trim();
 
   if (!guestPassword || !markPassword) {
-    setFeedback(dom.passwordFeedback, "Both passwords need a value.", "error");
+    setFeedback(dom.passwordFeedback, "Enter both passwords before saving.", "error");
     return;
   }
 
-  state.guestPassword = guestPassword;
-  state.markPassword = markPassword;
-  saveState();
-  setFeedback(dom.passwordFeedback, "Passwords updated for this archive.", "success");
+  try {
+    await apiFetch("/api/admin/passwords", {
+      method: "POST",
+      body: JSON.stringify({
+        guestPassword,
+        markPassword,
+      }),
+    });
+
+    dom.guestPasswordSetting.value = "";
+    dom.markPasswordSetting.value = "";
+    setFeedback(dom.passwordFeedback, "Passwords updated for this archive.", "success");
+  } catch (issue) {
+    setFeedback(dom.passwordFeedback, issue.message, "error");
+  }
 }
 
-function exportData() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `frames-and-days-backup-${getTodayKey()}.json`;
-  link.click();
-  URL.revokeObjectURL(url);
-  setFeedback(dom.passwordFeedback, "Backup exported.", "success");
+async function exportData() {
+  try {
+    const payload = await apiFetch("/api/admin/export");
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `frames-and-days-backup-${getTodayKey()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setFeedback(dom.passwordFeedback, "Backup exported.", "success");
+  } catch (issue) {
+    setFeedback(dom.passwordFeedback, issue.message, "error");
+  }
 }
 
 async function importData(event) {
@@ -684,15 +724,17 @@ async function importData(event) {
   try {
     const text = await file.text();
     const parsed = JSON.parse(text);
-    const imported = Array.isArray(parsed) ? { ...state, entries: parsed } : { ...state, ...parsed };
-    state = normalizeState(imported);
-    saveState();
-    ensureSelectedEntry();
+
+    await apiFetch("/api/admin/import", {
+      method: "POST",
+      body: JSON.stringify(parsed),
+    });
+
+    await refreshSessionAndData();
     resetEditor("Backup imported.", "success");
-    render();
     setFeedback(dom.passwordFeedback, "Backup imported successfully.", "success");
-  } catch {
-    setFeedback(dom.passwordFeedback, "That file was not a valid backup.", "error");
+  } catch (issue) {
+    setFeedback(dom.passwordFeedback, issue.message || "That file was not a valid backup.", "error");
   } finally {
     dom.importDataInput.value = "";
   }
@@ -729,9 +771,17 @@ function setView(view) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function lockArchive() {
-  session.guestUnlocked = false;
-  saveSession();
+async function handleLogout() {
+  try {
+    await apiFetch("/api/auth/logout", { method: "POST" });
+  } catch {
+    // Even if logout response fails, reset the local UI below.
+  }
+
+  closeMarkModal();
+  setFeedback(dom.guestLoginFeedback, "");
+  setFeedback(dom.markLoginFeedback, "");
+  await refreshSessionAndData();
   setView("gate");
 }
 
@@ -813,7 +863,7 @@ function ensureSelectedEntry() {
 }
 
 function getGuestEntries() {
-  return state.entries.filter((entry) => entry.status === "published" && entry.date.startsWith(`${APP_YEAR}-`));
+  return state.publicEntries.filter((entry) => entry.date.startsWith(`${APP_YEAR}-`));
 }
 
 function getFilteredGuestEntries() {
@@ -890,6 +940,7 @@ function renderRichText(value) {
 
 function parseTags(value) {
   const seen = new Set();
+
   return value
     .split(",")
     .map((tag) => tag.trim())
@@ -945,13 +996,145 @@ function estimateReadingTime(text) {
   return Math.max(1, Math.round(words / 220));
 }
 
-function readFileAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => resolve(String(reader.result)));
-    reader.addEventListener("error", () => reject(new Error("Could not read file.")));
-    reader.readAsDataURL(file);
+async function refreshSessionAndData() {
+  const nextSession = await apiFetch("/api/session");
+  session = {
+    adminUnlocked: Boolean(nextSession?.adminUnlocked),
+    guestUnlocked: Boolean(nextSession?.guestUnlocked),
+  };
+
+  if (session.guestUnlocked || session.adminUnlocked) {
+    const guestPromise = apiFetch(`/api/entries?year=${APP_YEAR}`);
+
+    if (session.adminUnlocked) {
+      const [guestPayload, adminPayload] = await Promise.all([
+        guestPromise,
+        apiFetch("/api/admin/entries"),
+      ]);
+
+      state.publicEntries = sortEntries((guestPayload.entries ?? []).map(normalizeEntry));
+      state.entries = sortEntries((adminPayload.entries ?? []).map(normalizeEntry));
+    } else {
+      const guestPayload = await guestPromise;
+      state.publicEntries = sortEntries((guestPayload.entries ?? []).map(normalizeEntry));
+      state.entries = [];
+    }
+  } else {
+    state.publicEntries = [];
+    state.entries = [];
+  }
+
+  syncViewToSession();
+  ensureSelectedEntry();
+  render();
+}
+
+function syncViewToSession() {
+  if (session.adminUnlocked) {
+    if (ui.currentView === "gate") {
+      ui.currentView = "admin";
+    }
+    return;
+  }
+
+  if (session.guestUnlocked) {
+    if (ui.currentView === "gate" || ui.currentView === "admin") {
+      ui.currentView = "guest";
+    }
+    return;
+  }
+
+  ui.currentView = "gate";
+}
+
+function upsertEntry(entry) {
+  state.entries = sortEntries([...state.entries.filter((item) => item.id !== entry.id), entry]);
+
+  if (entry.status === "published" && entry.date.startsWith(`${APP_YEAR}-`)) {
+    state.publicEntries = sortEntries([
+      ...state.publicEntries.filter((item) => item.id !== entry.id),
+      entry,
+    ]);
+  } else {
+    state.publicEntries = state.publicEntries.filter((item) => item.id !== entry.id);
+  }
+}
+
+async function uploadImage(file) {
+  const formData = new FormData();
+  formData.append("image", file);
+  formData.append("date", dom.entryDateInput.value || getTodayKey());
+
+  return apiFetch("/api/upload", {
+    method: "POST",
+    body: formData,
   });
+}
+
+async function optimizeImage(file) {
+  if (!(file instanceof File) || !file.type.startsWith("image/")) {
+    throw new Error("Only image files can be uploaded.");
+  }
+
+  if (!("createImageBitmap" in window) || file.type === "image/gif") {
+    return file;
+  }
+
+  const bitmap = await createImageBitmap(file);
+  const maxDimension = 2200;
+  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+
+  if (scale === 1 && file.size <= 3_800_000) {
+    return file;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return file;
+  }
+
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+  const blob = await new Promise((resolve) => {
+    canvas.toBlob(resolve, outputType, 0.82);
+  });
+
+  if (!blob) {
+    return file;
+  }
+
+  const baseName = file.name.replace(/\.[^.]+$/, "") || "photo";
+  const extension = outputType === "image/png" ? "png" : "jpg";
+  return new File([blob], `${baseName}.${extension}`, { type: outputType });
+}
+
+async function apiFetch(url, options = {}) {
+  const headers = new Headers(options.headers || {});
+  const config = {
+    ...options,
+    credentials: "same-origin",
+    headers,
+  };
+
+  if (config.body && !(config.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(url, config);
+  const contentType = response.headers.get("content-type") || "";
+  const payload = contentType.includes("application/json")
+    ? await response.json()
+    : await response.text();
+
+  if (!response.ok) {
+    throw new Error(payload?.error || payload || `Request failed with status ${response.status}.`);
+  }
+
+  return payload;
 }
 
 function seedEditorDate() {
@@ -960,61 +1143,25 @@ function seedEditorDate() {
   }
 }
 
-function setFeedback(node, message, tone = "neutral") {
-  node.textContent = message;
-  node.dataset.tone = message ? tone : "";
-}
-
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function loadState() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-    return normalizeState(parsed ?? DEFAULT_STATE);
-  } catch {
-    return normalizeState(DEFAULT_STATE);
-  }
-}
-
-function normalizeState(raw) {
-  const guestPassword = typeof raw?.guestPassword === "string" && raw.guestPassword.trim()
-    ? raw.guestPassword.trim()
-    : DEFAULT_STATE.guestPassword;
-  const markPassword = typeof raw?.markPassword === "string" && raw.markPassword.trim()
-    ? raw.markPassword.trim()
-    : DEFAULT_STATE.markPassword;
-  const entries = Array.isArray(raw?.entries) ? raw.entries.map(normalizeEntry) : [];
-
+function normalizeEntry(entry) {
   return {
-    guestPassword,
-    markPassword,
-    entries: sortEntries(entries),
+    id: String(entry.id),
+    date: String(entry.date).slice(0, 10),
+    status: entry.status === "draft" ? "draft" : "published",
+    title: cleanText(entry.title, "Untitled day"),
+    location: cleanText(entry.location),
+    mood: cleanText(entry.mood),
+    excerpt: cleanText(entry.excerpt),
+    body: cleanText(entry.body),
+    journal: cleanText(entry.journal),
+    tags: Array.isArray(entry.tags) ? entry.tags.filter(Boolean) : [],
+    images: Array.isArray(entry.images) ? entry.images.filter(Boolean) : [],
+    updatedAt: cleanText(entry.updatedAt, new Date().toISOString()),
   };
 }
 
-function normalizeEntry(raw) {
-  return {
-    id: typeof raw?.id === "string" && raw.id ? raw.id : crypto.randomUUID(),
-    date: isDateKey(raw?.date) ? raw.date : getTodayKey(),
-    title: cleanText(raw?.title, "Untitled day"),
-    location: cleanText(raw?.location),
-    mood: cleanText(raw?.mood),
-    excerpt: cleanText(raw?.excerpt),
-    body: cleanText(raw?.body),
-    journal: cleanText(raw?.journal),
-    tags: Array.isArray(raw?.tags)
-      ? parseTags(raw.tags.join(","))
-      : typeof raw?.tags === "string"
-        ? parseTags(raw.tags)
-        : [],
-    images: Array.isArray(raw?.images)
-      ? raw.images.filter((image) => typeof image === "string" && image)
-      : [],
-    status: raw?.status === "draft" ? "draft" : "published",
-    updatedAt: typeof raw?.updatedAt === "string" ? raw.updatedAt : new Date().toISOString(),
-  };
+function cleanText(value, fallback = "") {
+  return typeof value === "string" ? value.trim() : fallback;
 }
 
 function sortEntries(entries) {
@@ -1027,27 +1174,9 @@ function sortEntries(entries) {
   });
 }
 
-function cleanText(value, fallback = "") {
-  return typeof value === "string" ? value.trim() : fallback;
-}
-
-function loadSession() {
-  try {
-    const parsed = JSON.parse(sessionStorage.getItem(SESSION_KEY) ?? "null");
-    return {
-      guestUnlocked: Boolean(parsed?.guestUnlocked),
-      adminUnlocked: Boolean(parsed?.adminUnlocked),
-    };
-  } catch {
-    return {
-      guestUnlocked: false,
-      adminUnlocked: false,
-    };
-  }
-}
-
-function saveSession() {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+function setFeedback(node, message, tone = "neutral") {
+  node.textContent = message;
+  node.dataset.tone = message ? tone : "";
 }
 
 function getTodayKey() {
@@ -1082,10 +1211,6 @@ function formatShortDate(dateKey) {
     month: "short",
     day: "numeric",
   }).format(new Date(`${dateKey}T12:00:00`));
-}
-
-function isDateKey(value) {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
 function escapeHtml(value) {
