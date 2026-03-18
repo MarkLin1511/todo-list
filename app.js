@@ -10,6 +10,10 @@ const dom = {
   guestLoginFeedback: document.querySelector("#guest-login-feedback"),
   guestLogoutButton: document.querySelector("#guest-logout"),
   jumpLatestButton: document.querySelector("#jump-latest"),
+  featuredEntryCard: document.querySelector("#featured-entry-card"),
+  featuredEntryImage: document.querySelector("#featured-entry-image"),
+  featuredEntryTitle: document.querySelector("#featured-entry-title"),
+  featuredEntryMeta: document.querySelector("#featured-entry-meta"),
   yearHeatmap: document.querySelector("#year-heatmap"),
   publishedCount: document.querySelector("#published-count"),
   photoCount: document.querySelector("#photo-count"),
@@ -94,6 +98,11 @@ function bindEvents() {
   dom.guestLoginForm.addEventListener("submit", handleGuestLogin);
   dom.guestLogoutButton.addEventListener("click", handleLogout);
   dom.jumpLatestButton.addEventListener("click", openLatestEntry);
+  dom.featuredEntryCard.addEventListener("click", () => {
+    if (ui.selectedEntryId) {
+      selectEntry(ui.selectedEntryId);
+    }
+  });
   dom.markLoginLaunch.addEventListener("click", handleMarkButtonClick);
   dom.markLoginForm.addEventListener("submit", handleMarkLogin);
   dom.markModalBackdrop.addEventListener("click", closeMarkModal);
@@ -258,6 +267,7 @@ function renderGuest() {
 
   renderHeatmap(entries);
   renderGuestList();
+  renderFeaturedEntry();
   renderSpotlight();
 }
 
@@ -355,7 +365,7 @@ function renderGuestList() {
 }
 
 function renderSpotlight() {
-  const entry = getGuestEntries().find(({ id }) => id === ui.selectedEntryId);
+  const entry = getSelectedGuestEntry();
 
   if (!entry) {
     dom.spotlightEmpty.hidden = false;
@@ -400,6 +410,30 @@ function renderSpotlight() {
       `;
   dom.entryBody.innerHTML = renderRichText(entry.body);
   dom.entryJournal.innerHTML = renderRichText(entry.journal);
+}
+
+function renderFeaturedEntry() {
+  const entry = getSelectedGuestEntry();
+  const coverImage = entry?.images?.[0];
+
+  if (!entry || !coverImage) {
+    dom.featuredEntryCard.hidden = true;
+    dom.featuredEntryImage.src = "";
+    dom.featuredEntryImage.alt = "";
+    dom.featuredEntryTitle.textContent = "";
+    dom.featuredEntryMeta.textContent = "";
+    return;
+  }
+
+  dom.featuredEntryCard.hidden = false;
+  dom.featuredEntryImage.src = coverImage;
+  dom.featuredEntryImage.alt = `${entry.title} featured photo`;
+  dom.featuredEntryTitle.textContent = entry.title;
+  dom.featuredEntryMeta.textContent = compactMeta([
+    formatFullDate(entry.date),
+    entry.location,
+    `${entry.images.length} photo${entry.images.length === 1 ? "" : "s"}`,
+  ]);
 }
 
 function renderAdmin() {
@@ -864,6 +898,10 @@ function ensureSelectedEntry() {
 
 function getGuestEntries() {
   return state.publicEntries.filter((entry) => entry.date.startsWith(`${APP_YEAR}-`));
+}
+
+function getSelectedGuestEntry() {
+  return getGuestEntries().find(({ id }) => id === ui.selectedEntryId) || null;
 }
 
 function getFilteredGuestEntries() {
