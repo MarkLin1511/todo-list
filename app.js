@@ -1,4 +1,6 @@
 const APP_YEAR = 2026;
+const GATE_UNLOCK_DURATION = 1850;
+const GATE_DENIED_DURATION = 520;
 
 const dom = {
   gateView: document.querySelector("#gate-view"),
@@ -88,6 +90,8 @@ let ui = {
   searchQuery: "",
   editorImages: [],
 };
+
+let gateDeniedTimeout = null;
 
 bindEvents();
 seedEditorDate();
@@ -533,6 +537,12 @@ function renderEditorGallery() {
 
 async function handleGuestLogin(event) {
   event.preventDefault();
+  const submitButton =
+    event.submitter || dom.guestLoginForm.querySelector('button[type="submit"]');
+
+  if (submitButton) {
+    submitButton.disabled = true;
+  }
 
   try {
     await apiFetch("/api/auth/guest-login", {
@@ -544,10 +554,17 @@ async function handleGuestLogin(event) {
 
     dom.guestPasswordInput.value = "";
     setFeedback(dom.guestLoginFeedback, "");
-    await refreshSessionAndData();
+    const dataRefresh = refreshSessionAndData({ syncView: false });
+    const unlockAnimation = playVaultUnlock();
+    await Promise.all([dataRefresh, unlockAnimation]);
     setView("guest");
   } catch (issue) {
+    playVaultDenied();
     setFeedback(dom.guestLoginFeedback, issue.message, "error");
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+    }
   }
 }
 
@@ -813,8 +830,10 @@ async function handleLogout() {
   }
 
   closeMarkModal();
+  resetGateAnimation();
   setFeedback(dom.guestLoginFeedback, "");
   setFeedback(dom.markLoginFeedback, "");
+  dom.guestPasswordInput.value = "";
   await refreshSessionAndData();
   setView("gate");
 }
@@ -1034,7 +1053,8 @@ function estimateReadingTime(text) {
   return Math.max(1, Math.round(words / 220));
 }
 
-async function refreshSessionAndData() {
+async function refreshSessionAndData(options = {}) {
+  const { syncView = true } = options;
   const nextSession = await apiFetch("/api/session");
   session = {
     adminUnlocked: Boolean(nextSession?.adminUnlocked),
@@ -1062,9 +1082,40 @@ async function refreshSessionAndData() {
     state.entries = [];
   }
 
-  syncViewToSession();
+  if (syncView) {
+    syncViewToSession();
+  }
   ensureSelectedEntry();
   render();
+}
+
+function playVaultUnlock() {
+  resetGateAnimation();
+  dom.gateView.classList.add("is-unlocking");
+  return wait(GATE_UNLOCK_DURATION);
+}
+
+function playVaultDenied() {
+  if (gateDeniedTimeout) {
+    window.clearTimeout(gateDeniedTimeout);
+  }
+
+  dom.gateView.classList.remove("is-unlocking", "is-denied");
+  void dom.gateView.offsetWidth;
+  dom.gateView.classList.add("is-denied");
+  gateDeniedTimeout = window.setTimeout(() => {
+    dom.gateView.classList.remove("is-denied");
+    gateDeniedTimeout = null;
+  }, GATE_DENIED_DURATION);
+}
+
+function resetGateAnimation() {
+  if (gateDeniedTimeout) {
+    window.clearTimeout(gateDeniedTimeout);
+    gateDeniedTimeout = null;
+  }
+
+  dom.gateView.classList.remove("is-unlocking", "is-denied");
 }
 
 function syncViewToSession() {
@@ -1215,6 +1266,12 @@ function sortEntries(entries) {
 function setFeedback(node, message, tone = "neutral") {
   node.textContent = message;
   node.dataset.tone = message ? tone : "";
+}
+
+function wait(duration) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, duration);
+  });
 }
 
 function getTodayKey() {

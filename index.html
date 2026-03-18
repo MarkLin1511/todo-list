@@ -18,70 +18,62 @@
     <div class="ambient ambient-two" aria-hidden="true"></div>
 
     <div class="app-shell">
-      <button id="mark-login-launch" class="mark-corner-button" type="button">
-        Login for Mark
+      <button
+        id="mark-login-launch"
+        class="mark-corner-button"
+        type="button"
+        aria-label="Login for Mark"
+      >
+        Mark
       </button>
 
       <section id="gate-view" class="screen gate-screen">
         <div class="gate-layout">
-          <div class="gate-copy">
-            <p class="eyebrow">Private archive for friends</p>
-            <h1>Frames &amp; Days</h1>
-            <p class="gate-text">
-              A cinematic daybook where every date can hold a story, a photo set,
-              and a private journal note from that exact day.
-            </p>
+          <div class="vault-scene" aria-hidden="true">
+            <div class="vault-aura"></div>
+            <div class="vault-shell">
+              <div class="vault-chamber">
+                <div class="vault-chamber-glow"></div>
+                <div class="vault-chamber-grid"></div>
+                <div class="vault-chamber-bar"></div>
+                <div class="vault-chamber-bar second"></div>
+              </div>
 
-            <div class="gate-marquee">
-              <span>2026 heatmap</span>
-              <span>Daily photo roll</span>
-              <span>Journal reflections</span>
-              <span>Guest password gate</span>
+              <div class="vault-door">
+                <div class="vault-door-rings"></div>
+                <span class="vault-bolt bolt-top"></span>
+                <span class="vault-bolt bolt-right"></span>
+                <span class="vault-bolt bolt-bottom"></span>
+                <span class="vault-bolt bolt-left"></span>
+                <div class="vault-wheel">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <div class="vault-hub"></div>
+              </div>
             </div>
           </div>
 
-          <div class="panel gate-card">
-            <p class="panel-kicker">Guest entrance</p>
-            <h2>Unlock the archive</h2>
-            <p class="section-note">
-              Share the site with friends and let them in only if they know the
-              guest password.
-            </p>
-
-            <form id="guest-login-form" class="auth-form">
-              <label class="field">
-                <span>Guest password</span>
-                <input
-                  id="guest-password-input"
-                  name="guest-password"
-                  type="password"
-                  autocomplete="current-password"
-                  placeholder="Enter guest password"
-                  required
-                />
-              </label>
-              <button class="primary-button" type="submit">Enter the blog</button>
-              <p id="guest-login-feedback" class="feedback" aria-live="polite"></p>
-            </form>
-
-            <div class="feature-grid">
-              <article class="feature-card">
-                <p class="feature-number">01</p>
-                <h3>Heatmap archive</h3>
-                <p>Each published day lights up and opens with one click.</p>
-              </article>
-              <article class="feature-card">
-                <p class="feature-number">02</p>
-                <h3>Photo diary</h3>
-                <p>Every post can carry a gallery from that day.</p>
-              </article>
-              <article class="feature-card">
-                <p class="feature-number">03</p>
-                <h3>Journal pairing</h3>
-                <p>Long-form blog plus a private-feeling reflection panel.</p>
-              </article>
-            </div>
-          </div>
+          <form id="guest-login-form" class="vault-form">
+            <p class="vault-wordmark">Frames &amp; Days</p>
+            <label class="field vault-field">
+              <span>Password</span>
+              <input
+                id="guest-password-input"
+                name="guest-password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Password"
+                required
+              />
+            </label>
+            <button class="vault-submit" type="submit">Enter</button>
+            <p id="guest-login-feedback" class="feedback vault-feedback" aria-live="polite"></p>
+          </form>
         </div>
       </section>
 
