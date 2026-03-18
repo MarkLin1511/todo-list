@@ -3,221 +3,493 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Momentum Desk</title>
+    <meta name="theme-color" content="#10141e" />
+    <title>Frames &amp; Days</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Serif+Display:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
     <div class="app-shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Personal Productivity App</p>
-          <h1>Momentum Desk</h1>
-          <p class="hero-text">
-            Track habits over the year, manage today&apos;s tasks, and keep both
-            routines in one focused workspace.
-          </p>
-        </div>
+      <button id="mark-login-launch" class="mark-corner-button" type="button">
+        Login for Mark
+      </button>
 
-        <div class="hero-side">
-          <div class="today-card panel">
-            <span class="today-label">Today</span>
-            <strong id="today-date"></strong>
-            <p id="today-summary">0 of 0 habits completed</p>
-          </div>
+      <section id="gate-view" class="screen gate-screen">
+        <div class="gate-layout">
+          <div class="gate-copy">
+            <p class="eyebrow">Private archive for friends</p>
+            <h1>Frames &amp; Days</h1>
+            <p class="gate-text">
+              A cinematic daybook where every date can hold a story, a photo set,
+              and a private journal note from that exact day.
+            </p>
 
-          <div class="stat-strip panel">
-            <div class="stat-card">
-              <span class="stat-label">Habits done</span>
-              <strong id="habit-stat">0</strong>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Open tasks</span>
-              <strong id="task-stat">0</strong>
+            <div class="gate-marquee">
+              <span>2026 heatmap</span>
+              <span>Daily photo roll</span>
+              <span>Journal reflections</span>
+              <span>Guest password gate</span>
             </div>
           </div>
-        </div>
-      </header>
 
-      <main class="layout">
-        <section class="panel tabs-panel">
-          <div class="tabs" role="tablist" aria-label="Productivity tools">
-            <button
-              id="tab-habits"
-              class="tab-button active"
-              type="button"
-              role="tab"
-              aria-selected="true"
-              aria-controls="panel-habits"
-              data-tab="habits"
-            >
-              Habit tracker
-            </button>
-            <button
-              id="tab-todos"
-              class="tab-button"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              aria-controls="panel-todos"
-              data-tab="todos"
-            >
-              To-do list
-            </button>
-          </div>
-        </section>
+          <div class="panel gate-card">
+            <p class="panel-kicker">Guest entrance</p>
+            <h2>Unlock the archive</h2>
+            <p class="section-note">
+              Share the site with friends and let them in only if they know the
+              guest password.
+            </p>
 
-        <section
-          id="panel-habits"
-          class="tab-panel active"
-          role="tabpanel"
-          aria-labelledby="tab-habits"
-        >
-          <section class="panel">
-            <form id="habit-form" class="habit-form">
+            <form id="guest-login-form" class="auth-form">
               <label class="field">
-                <span>Habit name</span>
+                <span>Guest password</span>
                 <input
-                  id="habit-name"
-                  name="habit"
-                  type="text"
-                  maxlength="100"
-                  placeholder="Drink 8 glasses of water"
-                  autocomplete="off"
+                  id="guest-password-input"
+                  name="guest-password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="bowling"
                   required
                 />
               </label>
-
-              <label class="field">
-                <span>Color</span>
-                <select id="habit-color" name="color">
-                  <option value="sun">Sun</option>
-                  <option value="mint">Mint</option>
-                  <option value="ocean">Ocean</option>
-                  <option value="berry">Berry</option>
-                </select>
-              </label>
-
-              <button type="submit" class="primary-button">Add habit</button>
+              <button class="primary-button" type="submit">Enter the blog</button>
+              <p id="guest-login-feedback" class="feedback" aria-live="polite"></p>
             </form>
-          </section>
 
-          <section class="panel">
-            <div class="section-heading">
-              <div>
-                <p class="section-kicker">Track today</p>
-                <h2>Your habits</h2>
-                <p class="section-note">
-                  Each habit includes a full-year heatmap of completed days.
-                </p>
-              </div>
-              <button id="reset-today" class="secondary-button" type="button">
-                Reset today
+            <div class="feature-grid">
+              <article class="feature-card">
+                <p class="feature-number">01</p>
+                <h3>Heatmap archive</h3>
+                <p>Each published day lights up and opens with one click.</p>
+              </article>
+              <article class="feature-card">
+                <p class="feature-number">02</p>
+                <h3>Photo diary</h3>
+                <p>Every post can carry a gallery from that day.</p>
+              </article>
+              <article class="feature-card">
+                <p class="feature-number">03</p>
+                <h3>Journal pairing</h3>
+                <p>Long-form blog plus a private-feeling reflection panel.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="guest-view" class="screen" hidden>
+        <header class="panel archive-hero">
+          <div class="archive-hero-copy">
+            <p class="eyebrow">Guest archive</p>
+            <h1>Mark&apos;s 2026 Daybook</h1>
+            <p class="hero-text">
+              A living calendar of stories, photos, and journal snapshots. Click
+              any lit square to open that day.
+            </p>
+
+            <div class="hero-actions">
+              <button id="jump-latest" class="primary-button" type="button">
+                Open latest day
+              </button>
+              <button id="guest-logout" class="secondary-button" type="button">
+                Lock archive
               </button>
             </div>
+          </div>
 
-            <ul id="habit-list" class="habit-list" aria-live="polite"></ul>
+          <div class="hero-stat-grid">
+            <article class="hero-stat-card">
+              <span class="stat-label">Published days</span>
+              <strong id="published-count">0</strong>
+            </article>
+            <article class="hero-stat-card">
+              <span class="stat-label">Photos shared</span>
+              <strong id="photo-count">0</strong>
+            </article>
+            <article class="hero-stat-card">
+              <span class="stat-label">Current streak</span>
+              <strong id="streak-count">0</strong>
+            </article>
+          </div>
+        </header>
 
-            <template id="habit-empty-template">
-              <li class="empty-state">
-                <h3>No habits yet</h3>
-                <p>Start with one small habit you want to repeat every day.</p>
-              </li>
-            </template>
+        <main class="guest-layout">
+          <section class="panel heatmap-panel">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">Year map</p>
+                <h2>2026 heatmap</h2>
+                <p class="section-note">
+                  Darker squares mean a published day exists. Click a square to
+                  open the entry.
+                </p>
+              </div>
+
+              <div class="heatmap-legend">
+                <span>Quiet</span>
+                <span class="legend-swatch swatch-empty" aria-hidden="true"></span>
+                <span>Published</span>
+                <span class="legend-swatch swatch-filled" aria-hidden="true"></span>
+                <span>Selected</span>
+                <span class="legend-swatch swatch-selected" aria-hidden="true"></span>
+              </div>
+            </div>
+
+            <div id="year-heatmap" class="year-heatmap" aria-label="2026 blog heatmap"></div>
           </section>
-        </section>
 
-        <section
-          id="panel-todos"
-          class="tab-panel"
-          role="tabpanel"
-          aria-labelledby="tab-todos"
-          hidden
-        >
-          <section class="panel">
-            <form id="todo-form" class="todo-form">
-              <label class="field">
-                <span>Task</span>
+          <aside class="guest-sidebar">
+            <section class="panel browser-panel">
+              <div class="section-heading compact">
+                <div>
+                  <p class="section-kicker">Browse</p>
+                  <h2>Recent days</h2>
+                </div>
+              </div>
+
+              <label class="field search-field">
+                <span>Search by title, place, or tag</span>
                 <input
-                  id="todo-input"
-                  name="todo"
-                  type="text"
-                  maxlength="120"
-                  placeholder="Finish homework before dinner"
+                  id="search-input"
+                  type="search"
+                  placeholder="Find a day"
                   autocomplete="off"
-                  required
                 />
               </label>
 
-              <label class="field">
-                <span>Category</span>
-                <select id="todo-category" name="category">
-                  <option value="School">School</option>
-                  <option value="Work">Work</option>
-                  <option value="Personal">Personal</option>
-                  <option value="Errands">Errands</option>
-                </select>
-              </label>
+              <div id="tag-filter" class="tag-filter" aria-label="Filter by tag"></div>
+              <ul id="entry-list" class="entry-list" aria-live="polite"></ul>
+            </section>
+          </aside>
 
-              <button type="submit" class="primary-button">Add task</button>
+          <section class="panel spotlight-panel">
+            <div id="spotlight-empty" class="empty-state large">
+              <h3>No published entries yet</h3>
+              <p>
+                Once a day is published from the Mark panel, it will light up the
+                heatmap and open here.
+              </p>
+            </div>
+
+            <article id="entry-spotlight" class="entry-spotlight" hidden>
+              <div class="spotlight-head">
+                <p id="entry-date" class="entry-date"></p>
+                <h2 id="entry-title"></h2>
+                <p id="entry-meta" class="entry-meta"></p>
+                <p id="entry-excerpt" class="entry-excerpt"></p>
+                <div id="entry-tags" class="tag-row"></div>
+              </div>
+
+              <div id="entry-gallery" class="gallery-grid"></div>
+
+              <div class="entry-columns">
+                <section class="content-card">
+                  <p class="content-kicker">Blog</p>
+                  <div id="entry-body" class="rich-text"></div>
+                </section>
+
+                <aside class="content-card journal-card">
+                  <p class="content-kicker">Journal</p>
+                  <div id="entry-journal" class="rich-text journal-text"></div>
+                </aside>
+              </div>
+            </article>
+          </section>
+        </main>
+      </section>
+
+      <section id="admin-view" class="screen" hidden>
+        <header class="panel admin-hero">
+          <div class="archive-hero-copy">
+            <p class="eyebrow">Master control panel</p>
+            <h1>Mark&apos;s Editing Suite</h1>
+            <p class="hero-text">
+              Write a new day, revise older posts, change passwords, and back up
+              the whole archive.
+            </p>
+          </div>
+
+          <div class="hero-actions admin-actions">
+            <button id="admin-new-entry" class="primary-button" type="button">
+              New entry
+            </button>
+            <button id="admin-preview-guest" class="secondary-button" type="button">
+              Guest view
+            </button>
+            <button id="admin-logout" class="secondary-button" type="button">
+              Log out
+            </button>
+          </div>
+        </header>
+
+        <main class="admin-layout">
+          <section class="panel composer-panel">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">Compose</p>
+                <h2 id="editor-heading">New day</h2>
+                <p class="section-note">
+                  Each date can hold one main post, one journal reflection, tags,
+                  and a gallery.
+                </p>
+              </div>
+
+              <div class="editor-badges">
+                <span class="mini-badge">
+                  Entries
+                  <strong id="admin-entry-count">0</strong>
+                </span>
+                <span class="mini-badge">
+                  Drafts
+                  <strong id="admin-draft-count">0</strong>
+                </span>
+              </div>
+            </div>
+
+            <form id="entry-form" class="entry-form">
+              <input id="entry-id" type="hidden" />
+
+              <div class="form-grid two-up">
+                <label class="field">
+                  <span>Date</span>
+                  <input id="entry-date-input" type="date" required />
+                </label>
+
+                <label class="field">
+                  <span>Status</span>
+                  <select id="entry-status-input">
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="form-grid">
+                <label class="field">
+                  <span>Title</span>
+                  <input
+                    id="entry-title-input"
+                    type="text"
+                    maxlength="120"
+                    placeholder="Sunset practice in Santa Monica"
+                    autocomplete="off"
+                    required
+                  />
+                </label>
+              </div>
+
+              <div class="form-grid two-up">
+                <label class="field">
+                  <span>Location</span>
+                  <input
+                    id="entry-location-input"
+                    type="text"
+                    maxlength="80"
+                    placeholder="Los Angeles"
+                    autocomplete="off"
+                  />
+                </label>
+
+                <label class="field">
+                  <span>Mood</span>
+                  <input
+                    id="entry-mood-input"
+                    type="text"
+                    maxlength="40"
+                    placeholder="Reflective"
+                    autocomplete="off"
+                  />
+                </label>
+              </div>
+
+              <div class="form-grid">
+                <label class="field">
+                  <span>Excerpt</span>
+                  <textarea
+                    id="entry-excerpt-input"
+                    rows="3"
+                    maxlength="260"
+                    placeholder="A short preview that shows up on the guest page."
+                  ></textarea>
+                </label>
+              </div>
+
+              <div class="form-grid">
+                <label class="field">
+                  <span>Tags</span>
+                  <input
+                    id="entry-tags-input"
+                    type="text"
+                    maxlength="140"
+                    placeholder="travel, beach, friends"
+                    autocomplete="off"
+                  />
+                </label>
+              </div>
+
+              <div class="form-grid two-up tall">
+                <label class="field">
+                  <span>Blog post</span>
+                  <textarea
+                    id="entry-body-input"
+                    rows="12"
+                    placeholder="Write the story of the day..."
+                    required
+                  ></textarea>
+                </label>
+
+                <label class="field">
+                  <span>Journal reflection</span>
+                  <textarea
+                    id="entry-journal-input"
+                    rows="12"
+                    placeholder="Write the more personal journal note for that day..."
+                    required
+                  ></textarea>
+                </label>
+              </div>
+
+              <div class="form-grid">
+                <label class="field upload-field">
+                  <span>Add photos</span>
+                  <input id="entry-photos-input" type="file" accept="image/*" multiple />
+                </label>
+              </div>
+
+              <div id="editor-gallery" class="editor-gallery"></div>
+
+              <div class="form-actions">
+                <button class="primary-button" type="submit">Save day</button>
+                <button id="clear-editor" class="secondary-button" type="button">
+                  Clear form
+                </button>
+                <button id="delete-entry" class="danger-button" type="button" hidden>
+                  Delete day
+                </button>
+              </div>
+
+              <p id="editor-feedback" class="feedback" aria-live="polite"></p>
             </form>
           </section>
 
-          <section class="panel">
-            <div class="section-heading todo-heading">
-              <div>
-                <p class="section-kicker">Plan today</p>
-                <h2>Your tasks</h2>
-                <p class="section-note">
-                  Filter what&apos;s left, mark items done, and clear completed
-                  tasks when you&apos;re finished.
-                </p>
-              </div>
-              <div class="todo-toolbar">
-                <div class="filters" role="tablist" aria-label="Task filters">
-                  <button class="filter-button active" data-filter="all" type="button">
-                    All
-                  </button>
-                  <button class="filter-button" data-filter="open" type="button">
-                    Open
-                  </button>
-                  <button class="filter-button" data-filter="done" type="button">
-                    Done
-                  </button>
+          <aside class="admin-sidebar">
+            <section class="panel library-panel">
+              <div class="section-heading compact">
+                <div>
+                  <p class="section-kicker">Library</p>
+                  <h2>All entries</h2>
                 </div>
-                <button id="clear-completed" class="secondary-button" type="button">
-                  Clear completed
+              </div>
+
+              <ul id="admin-entry-list" class="admin-entry-list" aria-live="polite"></ul>
+            </section>
+
+            <section class="panel access-panel">
+              <div class="section-heading compact">
+                <div>
+                  <p class="section-kicker">Access</p>
+                  <h2>Password controls</h2>
+                </div>
+              </div>
+
+              <form id="password-form" class="password-form">
+                <label class="field">
+                  <span>Guest password</span>
+                  <input
+                    id="guest-password-setting"
+                    type="text"
+                    maxlength="40"
+                    autocomplete="off"
+                    required
+                  />
+                </label>
+
+                <label class="field">
+                  <span>Mark password</span>
+                  <input
+                    id="mark-password-setting"
+                    type="text"
+                    maxlength="40"
+                    autocomplete="off"
+                    required
+                  />
+                </label>
+
+                <button class="secondary-button full-width" type="submit">
+                  Save passwords
                 </button>
-              </div>
-            </div>
 
-            <div class="todo-stats">
-              <div class="todo-stat-box">
-                <span class="stat-label">Open</span>
-                <strong id="open-count">0</strong>
-              </div>
-              <div class="todo-stat-box">
-                <span class="stat-label">Done</span>
-                <strong id="done-count">0</strong>
-              </div>
-            </div>
+                <p id="password-feedback" class="feedback" aria-live="polite"></p>
+              </form>
 
-            <ul id="todo-list" class="todo-list" aria-live="polite"></ul>
+              <div class="backup-row">
+                <button id="export-data" class="secondary-button" type="button">
+                  Export backup
+                </button>
 
-            <template id="todo-empty-template">
-              <li class="empty-state">
-                <h3>No tasks yet</h3>
-                <p>Add your next task and keep your day moving.</p>
-              </li>
-            </template>
-          </section>
-        </section>
-      </main>
+                <label class="secondary-button import-label">
+                  Import backup
+                  <input id="import-data" type="file" accept="application/json" hidden />
+                </label>
+              </div>
+
+              <p class="tiny-note">
+                This build stores data in the browser, so exporting a backup is the
+                safest way to protect your archive while you prototype.
+              </p>
+            </section>
+          </aside>
+        </main>
+      </section>
+    </div>
+
+    <div id="mark-login-modal" class="modal" hidden>
+      <div id="mark-modal-backdrop" class="modal-backdrop"></div>
+
+      <div class="panel modal-card">
+        <button id="close-mark-modal" class="modal-close" type="button" aria-label="Close">
+          ×
+        </button>
+
+        <p class="panel-kicker">Mark only</p>
+        <h2>Enter the master control panel</h2>
+        <p class="section-note">
+          Use the Mark password to write new posts, edit old ones, and control the
+          archive.
+        </p>
+
+        <form id="mark-login-form" class="auth-form">
+          <label class="field">
+            <span>Mark password</span>
+            <input
+              id="mark-password-input"
+              name="mark-password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="strike"
+              required
+            />
+          </label>
+
+          <button class="primary-button" type="submit">Enter Mark panel</button>
+          <p id="mark-login-feedback" class="feedback" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+
+    <div id="lightbox" class="lightbox" hidden>
+      <button id="close-lightbox" class="modal-close lightbox-close" type="button" aria-label="Close">
+        ×
+      </button>
+      <img id="lightbox-image" alt="" />
     </div>
 
     <script src="app.js"></script>
