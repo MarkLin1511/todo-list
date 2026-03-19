@@ -9,9 +9,7 @@ const STATE_PATH = "__internal/archive-state.json";
 let stateCache = null;
 
 export async function ensureSchema() {
-  if (!stateCache) {
-    stateCache = await loadState();
-  }
+  stateCache = await loadState();
 }
 
 export async function getSettings() {
