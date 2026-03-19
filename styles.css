@@ -224,6 +224,7 @@ p {
 .danger-button,
 .tag-button,
 .gallery-card,
+.photo-archive-thumb,
 .entry-link,
 .modal-close,
 .image-remove-button,
@@ -334,7 +335,8 @@ button:focus-visible {
 .composer-panel,
 .library-panel,
 .access-panel,
-.heatmap-panel {
+.heatmap-panel,
+.photo-archive-panel {
   padding: 1.6rem;
 }
 
@@ -785,6 +787,7 @@ button:focus-visible {
 }
 
 .heatmap-panel,
+.photo-archive-panel,
 .spotlight-panel {
   grid-column: 1 / -1;
 }
@@ -874,6 +877,72 @@ button:focus-visible {
 .heatmap-cell.filler {
   opacity: 0;
   pointer-events: none;
+}
+
+.photo-archive-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.photo-archive-card {
+  display: grid;
+  gap: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.photo-archive-card.is-selected {
+  box-shadow: inset 0 0 0 1px rgba(191, 210, 255, 0.24);
+  background: linear-gradient(180deg, rgba(122, 163, 255, 0.08), rgba(255, 255, 255, 0.04));
+}
+
+.photo-archive-thumb {
+  padding: 0;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.photo-archive-thumb img {
+  display: block;
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+}
+
+.photo-archive-meta {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+}
+
+.photo-archive-date {
+  margin: 0;
+  color: var(--accent-strong);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.photo-archive-meta strong {
+  font-size: 1.05rem;
+}
+
+.photo-archive-linkline {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.photo-archive-open {
+  justify-self: start;
+  margin-top: 0.2rem;
+}
+
+.photo-archive-empty {
+  min-height: 220px;
 }
 
 .browser-panel {
@@ -1427,7 +1496,8 @@ button:focus-visible {
   .composer-panel,
   .library-panel,
   .access-panel,
-  .heatmap-panel {
+  .heatmap-panel,
+  .photo-archive-panel {
     padding: 1.15rem;
     border-radius: 24px;
   }
@@ -1497,12 +1567,14 @@ button:focus-visible {
   }
 
   .gallery-grid,
-  .editor-gallery {
+  .editor-gallery,
+  .photo-archive-grid {
     grid-template-columns: 1fr;
   }
 
   .gallery-card img,
-  .editor-image-card img {
+  .editor-image-card img,
+  .photo-archive-thumb img {
     height: 240px;
   }
 }

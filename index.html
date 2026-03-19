@@ -91,6 +91,9 @@
               <button id="jump-latest" class="primary-button" type="button">
                 Open latest day
               </button>
+              <button id="jump-gallery" class="secondary-button" type="button">
+                Gallery
+              </button>
               <button id="guest-logout" class="secondary-button" type="button">
                 Lock archive
               </button>
@@ -154,6 +157,20 @@
             </div>
 
             <div id="year-heatmap" class="year-heatmap" aria-label="2026 blog heatmap"></div>
+          </section>
+
+          <section id="photo-archive-panel" class="panel photo-archive-panel">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">Gallery</p>
+                <h2>Photo archive</h2>
+                <p class="section-note">
+                  Every uploaded photo, tied back to the exact blog date it belongs to.
+                </p>
+              </div>
+            </div>
+
+            <div id="photo-archive" class="photo-archive-grid" aria-live="polite"></div>
           </section>
 
           <aside class="guest-sidebar">

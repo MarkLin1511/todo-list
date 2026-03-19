@@ -12,6 +12,7 @@ const dom = {
   guestLoginFeedback: document.querySelector("#guest-login-feedback"),
   guestLogoutButton: document.querySelector("#guest-logout"),
   jumpLatestButton: document.querySelector("#jump-latest"),
+  jumpGalleryButton: document.querySelector("#jump-gallery"),
   featuredEntryCard: document.querySelector("#featured-entry-card"),
   featuredEntryImage: document.querySelector("#featured-entry-image"),
   featuredEntryTitle: document.querySelector("#featured-entry-title"),
@@ -23,6 +24,8 @@ const dom = {
   searchInput: document.querySelector("#search-input"),
   tagFilter: document.querySelector("#tag-filter"),
   entryList: document.querySelector("#entry-list"),
+  photoArchivePanel: document.querySelector("#photo-archive-panel"),
+  photoArchive: document.querySelector("#photo-archive"),
   spotlightEmpty: document.querySelector("#spotlight-empty"),
   entrySpotlight: document.querySelector("#entry-spotlight"),
   entryDate: document.querySelector("#entry-date"),
@@ -102,6 +105,7 @@ function bindEvents() {
   dom.guestLoginForm.addEventListener("submit", handleGuestLogin);
   dom.guestLogoutButton.addEventListener("click", handleLogout);
   dom.jumpLatestButton.addEventListener("click", openLatestEntry);
+  dom.jumpGalleryButton.addEventListener("click", openGalleryArchive);
   dom.featuredEntryCard.addEventListener("click", () => {
     if (ui.selectedEntryId) {
       selectEntry(ui.selectedEntryId);
@@ -143,6 +147,21 @@ function bindEvents() {
     }
 
     selectEntry(button.dataset.entryId);
+  });
+
+  dom.photoArchive.addEventListener("click", (event) => {
+    const imageButton = event.target.closest("[data-image-src]");
+    if (imageButton) {
+      openLightbox(imageButton.dataset.imageSrc, imageButton.dataset.imageAlt || "Blog image");
+      return;
+    }
+
+    const entryButton = event.target.closest("[data-entry-id]");
+    if (!entryButton) {
+      return;
+    }
+
+    selectEntry(entryButton.dataset.entryId);
   });
 
   dom.entryGallery.addEventListener("click", (event) => {
@@ -272,6 +291,7 @@ function renderGuest() {
   renderHeatmap(entries);
   renderGuestList();
   renderFeaturedEntry();
+  renderPhotoArchive(entries);
   renderSpotlight();
 }
 
@@ -438,6 +458,57 @@ function renderFeaturedEntry() {
     entry.location,
     `${entry.images.length} photo${entry.images.length === 1 ? "" : "s"}`,
   ]);
+}
+
+function renderPhotoArchive(entries = getGuestEntries()) {
+  const photoItems = getPhotoArchiveItems(entries);
+
+  if (photoItems.length === 0) {
+    dom.photoArchive.innerHTML = `
+      <div class="empty-gallery photo-archive-empty">
+        <p>Every uploaded photo will appear here with the blog day it belongs to.</p>
+      </div>
+    `;
+    return;
+  }
+
+  dom.photoArchive.innerHTML = photoItems
+    .map((item) => {
+      const note = compactMeta([
+        `Photo ${item.index + 1}${item.total > 1 ? ` of ${item.total}` : ""}`,
+        item.location,
+        item.mood,
+      ]);
+      const imageAlt = `${item.title} on ${formatFullDate(item.date)} photo ${item.index + 1}`;
+
+      return `
+        <article class="photo-archive-card${item.entryId === ui.selectedEntryId ? " is-selected" : ""}">
+          <button
+            class="photo-archive-thumb"
+            type="button"
+            data-image-src="${item.src}"
+            data-image-alt="${escapeHtml(imageAlt)}"
+            aria-label="${escapeHtml(`Open photo from ${formatFullDate(item.date)}`)}"
+          >
+            <img src="${item.src}" alt="${escapeHtml(imageAlt)}" loading="lazy" />
+          </button>
+
+          <div class="photo-archive-meta">
+            <p class="photo-archive-date">${formatFullDate(item.date)}</p>
+            <strong>${escapeHtml(item.title)}</strong>
+            <p class="photo-archive-linkline">${escapeHtml(note)}</p>
+            <button
+              class="secondary-button photo-archive-open"
+              type="button"
+              data-entry-id="${item.entryId}"
+            >
+              Open day
+            </button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
 }
 
 function renderAdmin() {
@@ -800,6 +871,10 @@ function openLatestEntry() {
   selectEntry(latest.id);
 }
 
+function openGalleryArchive() {
+  dom.photoArchivePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function selectEntry(entryId) {
   ui.selectedEntryId = entryId;
   renderGuest();
@@ -921,6 +996,21 @@ function getGuestEntries() {
 
 function getSelectedGuestEntry() {
   return getGuestEntries().find(({ id }) => id === ui.selectedEntryId) || null;
+}
+
+function getPhotoArchiveItems(entries = getGuestEntries()) {
+  return entries.flatMap((entry) =>
+    entry.images.map((src, index) => ({
+      entryId: entry.id,
+      date: entry.date,
+      title: entry.title,
+      location: entry.location,
+      mood: entry.mood,
+      src,
+      index,
+      total: entry.images.length,
+    }))
+  );
 }
 
 function getFilteredGuestEntries() {
